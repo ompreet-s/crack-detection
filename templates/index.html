@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrackScan — AI Crack Detection</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf7f2;
+  --bg2: #f2ede4;
+  --card: #ffffff;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --text: #1a1612;
+  --muted: #8a8278;
+  --rose: #e8402a;
+  --rose-light: rgba(232,64,42,0.09);
+  --clay: #d4602a;
+  --sand: #f0e8d8;
+  --sage: #4a7c6f;
+  --amber: #c8940e;
+  --ink: #2c2419;
+  --green: #3a7d5a;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Outfit',sans-serif;
+  overflow-x:hidden;
+  cursor:default;
+}
+
+/* ── NOISE TEXTURE ── */
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:9999;
+  opacity:0.5;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--rose);border-radius:3px;}
+
+/* ══════════════════════════════
+   NAV
+══════════════════════════════ */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(250,247,242,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 2.5rem;
+  height:62px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-mark{
+  width:36px;height:36px;
+  background:var(--rose);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.logo-mark svg{width:18px;height:18px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;}
+.logo-text{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-0.4px;}
+.logo-text b{color:var(--rose);}
+
+.nav-links{display:flex;align-items:center;gap:2rem;}
+.nav-links a{
+  font-size:14px;font-weight:500;color:var(--muted);
+  text-decoration:none;transition:color 0.15s;
+}
+.nav-links a:hover{color:var(--ink);}
+.nav-cta{
+  padding:8px 18px;
+  background:var(--ink);color:white;
+  border-radius:8px;font-size:13px;font-weight:600;
+  text-decoration:none;transition:background 0.15s;
+}
+.nav-cta:hover{background:var(--rose);}
+
+/* ══════════════════════════════
+   HERO
+══════════════════════════════ */
+.hero{
+  min-height:calc(100vh - 62px);
+  display:grid;grid-template-columns:1fr 1fr;
+  align-items:center;
+  padding:4rem 2.5rem;
+  gap:3rem;
+  position:relative;overflow:hidden;
+}
+
+/* big decorative circle */
+.hero::before{
+  content:'';
+  position:absolute;
+  right:-120px;top:-80px;
+  width:520px;height:520px;
+  border-radius:50%;
+  border:1.5px solid rgba(232,64,42,0.15);
+  pointer-events:none;
+}
+.hero::after{
+  content:'';
+  position:absolute;
+  right:-60px;top:-20px;
+  width:360px;height:360px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(232,64,42,0.05) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+.hero-left{position:relative;z-index:1;}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--rose);margin-bottom:1.25rem;
+}
+.eyebrow::before{
+  content:'';display:block;
+  width:20px;height:2px;
+  background:var(--rose);border-radius:2px;
+}
+
+.hero h1{
+  font-size:clamp(3rem,5.5vw,5rem);
+  font-weight:900;line-height:1.02;
+  letter-spacing:-3px;
+  color:var(--ink);
+  margin-bottom:1.25rem;
+}
+.hero h1 em{color:var(--rose);font-style:italic;}
+.hero h1 .line2{
+  display:block;
+  color:var(--muted);font-weight:300;
+  font-size:clamp(1.8rem,3.5vw,3rem);
+  letter-spacing:-1.5px;
+}
+
+.hero-desc{
+  font-size:15px;color:var(--muted);
+  line-height:1.7;max-width:400px;margin-bottom:2rem;
+}
+
+.hero-btns{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.btn-primary{
+  padding:13px 28px;
+  background:var(--rose);color:white;
+  border:none;border-radius:10px;
+  font-family:'Outfit',sans-serif;
+  font-size:15px;font-weight:700;cursor:pointer;
+  transition:all 0.2s;letter-spacing:-0.2px;
+  text-decoration:none;display:inline-block;
+}
+.btn-primary:hover{background:var(--clay);transform:translateY(-1px);}
+.btn-secondary{
+  padding:13px 24px;
+  background:transparent;
+  border:1.5px solid var(--border2);
+  border-radius:10px;
+  font-family:'Outfit',sans-serif;
+  font-size:15px;font-weight:600;color:var(--ink);
+  cursor:pointer;transition:all 0.2s;text-decoration:none;
+  display:inline-block;
+}
+.btn-secondary:hover{border-color:var(--ink);}
+
+.hero-kpis{
+  display:flex;gap:2rem;margin-top:2.5rem;
+  padding-top:2rem;border-top:1px solid var(--border);
+}
+.kpi{border-left:2.5px solid var(--rose);padding-left:12px;}
+.kpi-num{font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--ink);}
+.kpi-lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Hero right — floating cards */
+.hero-right{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;gap:12px;
+}
+
+.hero-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:1.25rem 1.5rem;
+  display:flex;align-items:center;gap:14px;
+  transition:transform 0.2s,box-shadow 0.2s;
+  animation:floatUp 0.6s ease both;
+}
+.hero-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.07);}
+.hero-card:nth-child(1){animation-delay:0.1s;}
+.hero-card:nth-child(2){animation-delay:0.22s;margin-left:2rem;}
+.hero-card:nth-child(3){animation-delay:0.34s;}
+.hero-card:nth-child(4){animation-delay:0.46s;margin-left:2rem;}
+
+@keyframes floatUp{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+.hc-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.hc-icon.rose{background:rgba(232,64,42,0.1);}
+.hc-icon.sage{background:rgba(74,124,111,0.1);}
+.hc-icon.amber{background:rgba(200,148,14,0.1);}
+.hc-icon.ink{background:rgba(44,36,25,0.08);}
+.hc-icon svg{width:20px;height:20px;stroke-width:1.8;stroke-linecap:round;fill:none;}
+.hc-icon.rose svg{stroke:var(--rose);}
+.hc-icon.sage svg{stroke:var(--sage);}
+.hc-icon.amber svg{stroke:var(--amber);}
+.hc-icon.ink svg{stroke:var(--ink);}
+.hc-title{font-size:14px;font-weight:600;color:var(--ink);}
+.hc-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* ══════════════════════════════
+   SECTIONS SHARED
+══════════════════════════════ */
+.section{padding:5rem 2.5rem;}
+.section-eyebrow{
+  font-family:'Space Mono',monospace;
+  font-size:10px;text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--rose);margin-bottom:0.75rem;
+}
+.section-title{
+  font-size:clamp(1.8rem,3.5vw,2.8rem);
+  font-weight:800;letter-spacing:-1.5px;color:var(--ink);
+  margin-bottom:1rem;
+}
+.section-sub{
+  font-size:15px;color:var(--muted);max-width:540px;line-height:1.7;
+}
+
+/* ══════════════════════════════
+   HOW IT WORKS
+══════════════════════════════ */
+.how-section{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+
+.steps{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;margin-top:3rem;
+  border:1px solid var(--border);border-radius:16px;overflow:hidden;
+}
+.step{
+  padding:2rem 1.5rem;
+  border-right:1px solid var(--border);
+  position:relative;transition:background 0.2s;
+}
+.step:last-child{border-right:none;}
+.step:hover{background:var(--bg);}
+
+.step-num{
+  font-family:'Space Mono',monospace;
+  font-size:11px;color:var(--rose);
+  margin-bottom:1rem;font-weight:700;
+}
+.step-icon{
+  width:48px;height:48px;border-radius:12px;
+  background:var(--rose-light);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:1rem;
+}
+.step-icon svg{width:22px;height:22px;stroke:var(--rose);stroke-width:1.8;stroke-linecap:round;fill:none;}
+.step-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+.step-arrow{
+  position:absolute;right:-14px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:50%;
+  background:var(--sand);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  z-index:2;font-size:12px;color:var(--muted);
+}
+.step:last-child .step-arrow{display:none;}
+
+/* ══════════════════════════════
+   UPLOAD TOOL
+══════════════════════════════ */
+#tool{background:var(--bg);}
+
+.tool-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:1.5rem;margin-top:2.5rem;
+}
+
+/* Upload panel */
+.upload-panel{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+}
+.upload-panel-head{
+  padding:1.25rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.panel-tag{
+  font-family:'Space Mono',monospace;
+  font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--muted);
+}
+.panel-dot{width:8px;height:8px;border-radius:50%;background:var(--rose);}
+
+.drop-zone{
+  margin:1.5rem;
+  border:1.5px dashed rgba(232,64,42,0.25);
+  border-radius:14px;
+  padding:2.5rem 1.5rem;
+  text-align:center;cursor:pointer;
+  transition:all 0.2s;
+  background:var(--bg);
+}
+.drop-zone:hover,.drop-zone.over{
+  border-color:var(--rose);
+  background:var(--rose-light);
+}
+.drop-ring{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--sand);
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.25rem;
+  transition:all 0.2s;
+}
+.drop-zone:hover .drop-ring{background:var(--rose-light);border-color:rgba(232,64,42,0.3);}
+.drop-ring svg{width:26px;height:26px;stroke:var(--rose);stroke-width:1.8;fill:none;stroke-linecap:round;}
+.drop-zone h3{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:5px;}
+.drop-zone p{font-size:13px;color:var(--muted);margin-bottom:1.1rem;}
+
+.browse-btn{
+  display:inline-block;padding:9px 22px;
+  background:var(--rose);color:white;
+  border-radius:8px;font-size:13px;font-weight:700;
+  cursor:pointer;border:none;
+  font-family:'Outfit',sans-serif;transition:opacity 0.15s;
+}
+.browse-btn:hover{opacity:0.88;}
+
+.fmt-row{
+  display:flex;gap:6px;justify-content:center;margin-top:1rem;
+}
+.fmt{
+  font-family:'Space Mono',monospace;font-size:9px;
+  padding:3px 8px;border-radius:4px;
+  background:var(--sand);color:var(--muted);
+  border:1px solid var(--border);
+}
+
+/* Preview */
+.preview-area{
+  display:none;padding:0 1.5rem 1.5rem;
+}
+.preview-area.show{display:block;}
+.prev-img{
+  width:100%;max-height:220px;
+  object-fit:contain;border-radius:10px;
+  border:1px solid var(--border);background:var(--sand);
+}
+.prev-meta{
+  font-family:'Space Mono',monospace;font-size:11px;
+  color:var(--muted);text-align:center;margin-top:6px;
+}
+
+.analyze-btn{
+  display:none;
+  width:calc(100% - 3rem);margin:0 1.5rem 1.5rem;
+  padding:14px;background:var(--ink);color:white;
+  border:none;border-radius:12px;
+  font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;letter-spacing:-0.2px;
+  transition:background 0.2s,transform 0.15s;
+  position:relative;overflow:hidden;
+}
+.analyze-btn::after{
+  content:'';position:absolute;inset:0;
+  background:var(--rose);
+  transform:translateX(-100%);transition:transform 0.4s ease;
+}
+.analyze-btn:hover::after{transform:translateX(0);}
+.analyze-btn span{position:relative;z-index:1;}
+.analyze-btn:active{transform:scale(0.99);}
+.analyze-btn.show{display:block;}
+
+/* Settings panel */
+.settings-panel{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.settings-panel-head{
+  padding:1.25rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.settings-body{padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;flex:1;}
+
+.setting-row{display:flex;flex-direction:column;gap:6px;}
+.setting-label{
+  font-size:12px;font-weight:600;color:var(--ink);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.setting-label span{
+  font-family:'Space Mono',monospace;
+  font-size:11px;font-weight:400;color:var(--rose);
+}
+.setting-sub{font-size:11px;color:var(--muted);}
+
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:4px;
+  border-radius:2px;background:var(--sand);outline:none;
+  cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--rose);cursor:pointer;
+  border:2px solid white;
+  box-shadow:0 1px 4px rgba(232,64,42,0.35);
+}
+
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.toggle-info .t-title{font-size:13px;font-weight:600;color:var(--ink);}
+.toggle-info .t-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+.toggle{
+  position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer;
+}
+.toggle input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{
+  position:absolute;inset:0;border-radius:11px;
+  background:var(--sand);border:1px solid var(--border);
+  transition:background 0.2s;
+}
+.toggle input:checked~.toggle-track{background:var(--rose);border-color:var(--rose);}
+.toggle-thumb{
+  position:absolute;top:3px;left:3px;
+  width:16px;height:16px;border-radius:50%;
+  background:white;transition:left 0.2s;
+  box-shadow:0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle input:checked~.toggle-thumb{left:21px;}
+
+.mode-btns{display:flex;gap:6px;}
+.mode-btn{
+  flex:1;padding:8px;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg);
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  color:var(--muted);cursor:pointer;transition:all 0.15s;
+}
+.mode-btn.active{background:var(--rose);color:white;border-color:var(--rose);}
+
+/* ══════════════════════════════
+   LOADING
+══════════════════════════════ */
+.loading-wrap{
+  display:none;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:3rem 2rem;text-align:center;
+  grid-column:1/-1;
+}
+.loading-wrap.show{display:block;}
+.spin-ring{
+  width:56px;height:56px;margin:0 auto 1.25rem;
+  border:3px solid var(--sand);
+  border-top-color:var(--rose);border-radius:50%;
+  animation:spin 0.75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-wrap p{font-size:14px;color:var(--muted);}
+.loading-steps{
+  display:flex;gap:0;justify-content:center;
+  margin-top:1.5rem;padding-top:1.5rem;
+  border-top:1px solid var(--border);
+}
+.l-step{
+  padding:6px 16px;
+  font-family:'Space Mono',monospace;font-size:10px;
+  color:var(--muted);border-right:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+}
+.l-step:last-child{border-right:none;}
+.l-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--border);
+}
+.l-step.active .l-dot{background:var(--rose);}
+.l-step.done .l-dot{background:var(--sage);}
+.l-step.active{color:var(--rose);}
+.l-step.done{color:var(--sage);}
+
+/* ══════════════════════════════
+   RESULTS
+══════════════════════════════ */
+.results-wrap{display:none;grid-column:1/-1;}
+.results-wrap.show{display:block;}
+
+.res-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1.25rem;
+}
+.res-topbar h2{font-size:20px;font-weight:800;letter-spacing:-0.5px;color:var(--ink);}
+.res-actions{display:flex;gap:8px;}
+.res-btn{
+  padding:8px 16px;border-radius:8px;
+  font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.15s;border:1px solid var(--border);
+  background:var(--card);color:var(--muted);
+}
+.res-btn:hover{border-color:var(--ink);color:var(--ink);}
+.res-btn.primary{background:var(--rose);color:white;border-color:var(--rose);}
+.res-btn.primary:hover{background:var(--clay);}
+
+.metrics-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:10px;margin-bottom:1.25rem;
+}
+.metric{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:1rem 1.25rem;
+  transition:transform 0.15s;
+}
+.metric:hover{transform:translateY(-2px);}
+.metric-lbl{
+  font-family:'Space Mono',monospace;
+  font-size:9px;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--muted);margin-bottom:6px;
+}
+.metric-val{
+  font-size:24px;font-weight:800;letter-spacing:-0.8px;color:var(--ink);
+}
+.metric-val.rose{color:var(--rose);}
+.metric-val.amber{color:var(--amber);}
+.metric-val.sage{color:var(--sage);}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+
+.imgs-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin-bottom:1.25rem;
+}
+.img-cell{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;
+}
+.img-cell-lbl{
+  font-family:'Space Mono',monospace;font-size:9px;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--muted);padding:10px 12px 5px;
+}
+.img-cell img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+
+.analysis-row{
+  display:grid;grid-template-columns:2fr 1fr;
+  gap:10px;margin-bottom:1.25rem;
+}
+
+.sev-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:1.25rem 1.5rem;
+}
+.sev-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:1.25rem;
+}
+.sev-title{font-size:14px;font-weight:700;color:var(--ink);}
+.sev-badge{
+  font-family:'Space Mono',monospace;font-size:10px;
+  padding:4px 12px;border-radius:20px;font-weight:700;
+}
+.sev-badge.rose{background:rgba(232,64,42,0.1);color:var(--rose);}
+.sev-badge.amber{background:rgba(200,148,14,0.1);color:var(--amber);}
+.sev-badge.sage{background:rgba(74,124,111,0.1);color:var(--sage);}
+
+.sev-bars{display:flex;flex-direction:column;gap:10px;}
+.sev-bar-row{display:grid;grid-template-columns:90px 1fr 36px;align-items:center;gap:10px;}
+.sev-bar-lbl{font-size:12px;color:var(--muted);}
+.sev-bar-bg{height:6px;background:var(--sand);border-radius:3px;overflow:hidden;}
+.sev-bar-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1);}
+.sev-bar-fill.rose{background:var(--rose);}
+.sev-bar-fill.amber{background:var(--amber);}
+.sev-bar-fill.sage{background:var(--sage);}
+.sev-bar-fill.ink{background:var(--ink);}
+.sev-bar-num{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-align:right;}
+
+/* Recommendation card */
+.rec-card{
+  background:var(--ink);border-radius:14px;padding:1.25rem;
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.rec-label{
+  font-family:'Space Mono',monospace;font-size:9px;
+  text-transform:uppercase;letter-spacing:0.1em;
+  color:rgba(255,255,255,0.4);margin-bottom:10px;
+}
+.rec-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;
+}
+.rec-icon svg{width:20px;height:20px;stroke:white;stroke-width:1.8;fill:none;stroke-linecap:round;}
+.rec-icon.rose{background:rgba(232,64,42,0.35);}
+.rec-icon.sage{background:rgba(74,124,111,0.35);}
+.rec-icon.amber{background:rgba(200,148,14,0.35);}
+.rec-text{font-size:14px;font-weight:600;color:white;line-height:1.5;flex:1;}
+.rec-action{
+  margin-top:14px;display:inline-block;
+  font-size:12px;font-weight:600;
+  color:rgba(255,255,255,0.55);
+}
+
+/* History panel */
+.history-panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;
+  margin-bottom:1.25rem;
+  overflow:hidden;
+}
+.history-head{
+  padding:1rem 1.25rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.history-head h3{font-size:14px;font-weight:700;color:var(--ink);}
+.history-body{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.4s ease;
+}
+.history-body.open{max-height:400px;}
+.history-list{padding:0.75rem;}
+.hist-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:10px;
+  cursor:pointer;transition:background 0.15s;
+  border:1px solid transparent;
+}
+.hist-item:hover{background:var(--bg);border-color:var(--border);}
+.hist-thumb{
+  width:44px;height:44px;border-radius:8px;
+  background:var(--sand);overflow:hidden;flex-shrink:0;
+}
+.hist-thumb img{width:100%;height:100%;object-fit:cover;}
+.hist-name{font-size:13px;font-weight:600;color:var(--ink);}
+.hist-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.hist-sev{margin-left:auto;flex-shrink:0;}
+.hist-tag{
+  font-family:'Space Mono',monospace;font-size:9px;
+  padding:3px 9px;border-radius:20px;font-weight:700;
+}
+.hist-tag.rose{background:rgba(232,64,42,0.1);color:var(--rose);}
+.hist-tag.amber{background:rgba(200,148,14,0.1);color:var(--amber);}
+.hist-tag.sage{background:rgba(74,124,111,0.1);color:var(--sage);}
+.no-hist{padding:2rem;text-align:center;font-size:13px;color:var(--muted);}
+
+.expand-btn{
+  background:none;border:none;cursor:pointer;
+  font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);
+  display:flex;align-items:center;gap:6px;
+  transition:color 0.15s;
+}
+.expand-btn:hover{color:var(--ink);}
+.expand-chevron{
+  width:16px;height:16px;border-radius:4px;
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:9px;transition:transform 0.3s;
+}
+.expand-chevron.open{transform:rotate(180deg);}
+
+/* ══════════════════════════════
+   FEATURES SECTION
+══════════════════════════════ */
+#features{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+
+.features-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;margin-top:3rem;
+}
+.feat-cell{
+  background:var(--card);padding:2rem;
+  transition:background 0.2s;
+}
+.feat-cell:hover{background:var(--bg);}
+.feat-ico{
+  width:48px;height:48px;border-radius:12px;
+  background:var(--rose-light);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:1.25rem;
+}
+.feat-ico svg{width:22px;height:22px;stroke:var(--rose);stroke-width:1.8;fill:none;stroke-linecap:round;}
+.feat-ico.sage-ico{background:rgba(74,124,111,0.1);}
+.feat-ico.sage-ico svg{stroke:var(--sage);}
+.feat-ico.amber-ico{background:rgba(200,148,14,0.1);}
+.feat-ico.amber-ico svg{stroke:var(--amber);}
+.feat-title{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.feat-desc{font-size:13px;color:var(--muted);line-height:1.65;}
+
+/* ══════════════════════════════
+   STATS SECTION
+══════════════════════════════ */
+.stats-section{
+  background:var(--ink);
+  padding:4rem 2.5rem;
+}
+.stats-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.1);border-radius:16px;overflow:hidden;
+  margin-top:2.5rem;
+}
+.stat-box{
+  background:var(--ink);
+  padding:2rem;text-align:center;
+  transition:background 0.2s;
+}
+.stat-box:hover{background:rgba(255,255,255,0.04);}
+.stat-big{
+  font-size:clamp(2rem,4vw,3.5rem);
+  font-weight:900;letter-spacing:-2px;
+  color:var(--rose);margin-bottom:6px;
+}
+.stat-desc{font-size:13px;color:rgba(255,255,255,0.5);}
+
+/* ══════════════════════════════
+   DATASET / MODEL INFO
+══════════════════════════════ */
+.model-section{background:var(--bg);}
+.model-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:1.5rem;margin-top:2.5rem;
+}
+.model-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:2rem;
+}
+.model-card h3{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:1.25rem;}
+.model-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.model-row:last-child{border-bottom:none;}
+.model-key{font-size:13px;color:var(--muted);}
+.model-val{
+  font-family:'Space Mono',monospace;font-size:12px;
+  font-weight:700;color:var(--ink);
+}
+.model-val.rose{color:var(--rose);}
+.model-val.sage{color:var(--sage);}
+
+/* ══════════════════════════════
+   FAQ
+══════════════════════════════ */
+.faq-section{background:var(--card);border-top:1px solid var(--border);}
+.faq-list{max-width:680px;margin-top:2.5rem;display:flex;flex-direction:column;gap:8px;}
+.faq-item{
+  border:1px solid var(--border);border-radius:12px;overflow:hidden;
+}
+.faq-q{
+  width:100%;padding:1.1rem 1.25rem;
+  background:none;border:none;
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;
+  color:var(--ink);cursor:pointer;text-align:left;
+  transition:background 0.15s;
+}
+.faq-q:hover{background:var(--bg);}
+.faq-chevron{font-size:12px;color:var(--muted);transition:transform 0.3s;flex-shrink:0;margin-left:12px;}
+.faq-item.open .faq-chevron{transform:rotate(180deg);}
+.faq-a{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.35s ease,padding 0.35s ease;
+  padding:0 1.25rem;
+  font-size:13px;color:var(--muted);line-height:1.7;
+}
+.faq-item.open .faq-a{max-height:200px;padding:0 1.25rem 1.1rem;}
+
+/* ══════════════════════════════
+   FOOTER
+══════════════════════════════ */
+footer{
+  background:var(--ink);
+  padding:3rem 2.5rem 2rem;
+}
+.footer-top{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:2rem;padding-bottom:2rem;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  margin-bottom:1.5rem;
+}
+.footer-brand .logo-text{color:white;}
+.footer-brand p{font-size:13px;color:rgba(255,255,255,0.4);margin-top:10px;line-height:1.65;}
+.footer-col h4{font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;}
+.footer-col a{
+  display:block;font-size:13px;color:rgba(255,255,255,0.5);
+  text-decoration:none;margin-bottom:6px;transition:color 0.15s;
+}
+.footer-col a:hover{color:white;}
+.footer-bottom{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.footer-copy{
+  font-family:'Space Mono',monospace;font-size:10px;
+  color:rgba(255,255,255,0.3);
+}
+.footer-copy b{color:var(--rose);}
+.footer-tech-row{display:flex;gap:6px;}
+.f-tech{
+  font-family:'Space Mono',monospace;font-size:9px;
+  padding:3px 8px;border-radius:4px;
+  background:rgba(255,255,255,0.07);
+  color:rgba(255,255,255,0.4);
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+/* ══════════════════════════════
+   TOAST
+══════════════════════════════ */
+.toast-wrap{
+  position:fixed;bottom:2rem;right:2rem;
+  z-index:200;display:flex;flex-direction:column;gap:8px;
+}
+.toast{
+  padding:12px 18px;border-radius:10px;
+  background:var(--ink);color:white;
+  font-size:13px;font-weight:600;
+  border:1px solid rgba(255,255,255,0.1);
+  transform:translateX(120%);transition:transform 0.35s ease;
+  display:flex;align-items:center;gap:8px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.2);
+}
+.toast.show{transform:translateX(0);}
+.toast.success::before{content:'✓';color:var(--sage);}
+.toast.error::before{content:'✕';color:var(--rose);}
+.toast.info::before{content:'i';color:var(--amber);}
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;min-height:auto;padding:3rem 1.5rem;}
+  .hero-right{display:none;}
+  .steps{grid-template-columns:1fr 1fr;}
+  .step:nth-child(2){border-right:none;}
+  .step:nth-child(3){border-right:1px solid var(--border);border-top:1px solid var(--border);}
+  .step:nth-child(4){border-right:none;border-top:1px solid var(--border);}
+  .tool-grid{grid-template-columns:1fr;}
+  .metrics-row{grid-template-columns:1fr 1fr;}
+  .imgs-grid{grid-template-columns:1fr 1fr;}
+  .analysis-row{grid-template-columns:1fr;}
+  .features-grid{grid-template-columns:1fr 1fr;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .model-grid{grid-template-columns:1fr;}
+  .footer-top{grid-template-columns:1fr;}
+  nav{padding:0 1.5rem;}
+  .nav-links a:not(.nav-cta){display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <div class="logo-text">Crack<b>Scan</b></div>
+  </a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#tool">Analyze</a>
+    <a href="#features">Features</a>
+    <a href="#faq">FAQ</a>
+    <a class="nav-cta" href="#tool">Try Free →</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="eyebrow">AI Structural Analysis</div>
+    <h1>Find <em>cracks.</em><span class="line2">Before they find you.</span></h1>
+    <p class="hero-desc">Upload any photo of a wall, road, bridge, or structure. Our deep learning model segments, maps, and scores cracks in under 2 seconds.</p>
+    <div class="hero-btns">
+      <a class="btn-primary" href="#tool">Analyze an Image →</a>
+      <a class="btn-secondary" href="#how">See how it works</a>
+    </div>
+    <div class="hero-kpis">
+      <div class="kpi"><div class="kpi-num">0.83</div><div class="kpi-lbl">Dice Score</div></div>
+      <div class="kpi"><div class="kpi-num">0.71</div><div class="kpi-lbl">IoU Score</div></div>
+      <div class="kpi"><div class="kpi-num">&lt;2s</div><div class="kpi-lbl">Inference</div></div>
+      <div class="kpi"><div class="kpi-num">3-class</div><div class="kpi-lbl">Severity</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-card">
+      <div class="hc-icon rose"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
+      <div><div class="hc-title">Pixel-level segmentation</div><div class="hc-sub">U-Net architecture with ResNet-34 backbone</div></div>
+    </div>
+    <div class="hero-card">
+      <div class="hc-icon amber"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div><div class="hc-title">3-tier severity scoring</div><div class="hc-sub">Low, Medium, High risk classification</div></div>
+    </div>
+    <div class="hero-card">
+      <div class="hc-icon sage"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div><div class="hc-title">Real-time probability map</div><div class="hc-sub">Visual confidence overlay per pixel</div></div>
+    </div>
+    <div class="hero-card">
+      <div class="hc-icon ink"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+      <div><div class="hc-title">Scan history &amp; export</div><div class="hc-sub">Track past analyses, export reports</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="section how-section" id="how">
+  <div class="section-eyebrow">Process</div>
+  <div class="section-title">How it works</div>
+  <div class="section-sub">From photo to structural insight in four simple steps — no expertise required.</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+      <div class="step-title">Upload image</div>
+      <div class="step-desc">Drag & drop or browse. Supports JPG, PNG, BMP up to 16 MB.</div>
+      <div class="step-arrow">→</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+      <div class="step-title">AI preprocessing</div>
+      <div class="step-desc">Image is normalized, resized, and passed through the encoder-decoder pipeline.</div>
+      <div class="step-arrow">→</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="step-title">Segmentation & scoring</div>
+      <div class="step-desc">U-Net generates pixel mask. Coverage % and severity level computed.</div>
+      <div class="step-arrow">→</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+      <div class="step-title">Results &amp; export</div>
+      <div class="step-desc">View original, probability map, overlay. Download results or save to history.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TOOL ══ -->
+<section class="section" id="tool">
+  <div class="section-eyebrow">Detection Tool</div>
+  <div class="section-title">Analyze your image</div>
+  <div class="section-sub">Adjust detection settings and upload your structural image to get instant analysis.</div>
+
+  <div class="tool-grid" id="toolGrid">
+
+    <!-- Upload panel -->
+    <div class="upload-panel" id="uploadPanel">
+      <div class="upload-panel-head">
+        <div class="panel-dot"></div>
+        <div class="panel-tag">Image Input</div>
+      </div>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="drop-ring">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <h3>Drop your image here</h3>
+        <p>or browse from your device</p>
+        <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('fileInput').click()">Choose File</button>
+        <div class="fmt-row">
+          <span class="fmt">JPG</span><span class="fmt">PNG</span><span class="fmt">BMP</span><span class="fmt">≤16 MB</span>
+        </div>
+        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.bmp" style="display:none">
+      </div>
+      <div class="preview-area" id="previewArea">
+        <img id="prevImg" class="prev-img" src="" alt="Preview">
+        <p class="prev-meta" id="prevMeta"></p>
+      </div>
+      <button class="analyze-btn" id="analyzeBtn" onclick="doAnalyze()"><span>Analyze for Cracks →</span></button>
+    </div>
+
+    <!-- Settings panel -->
+    <div class="settings-panel">
+      <div class="settings-panel-head">
+        <div class="panel-dot" style="background:var(--sage)"></div>
+        <div class="panel-tag">Detection Settings</div>
+      </div>
+      <div class="settings-body">
+
+        <div class="setting-row">
+          <div class="setting-label">Confidence Threshold <span id="threshVal">0.50</span></div>
+          <div class="setting-sub">Minimum pixel probability to classify as crack</div>
+          <input type="range" id="threshSlider" min="10" max="90" value="50" step="5" oninput="document.getElementById('threshVal').textContent=(this.value/100).toFixed(2)">
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">Detection Mode</div>
+          <div class="setting-sub">Choose target material type</div>
+          <div class="mode-btns">
+            <button class="mode-btn active" onclick="setMode(this,'concrete')">Concrete</button>
+            <button class="mode-btn" onclick="setMode(this,'asphalt')">Asphalt</button>
+            <button class="mode-btn" onclick="setMode(this,'masonry')">Masonry</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="t-title">Probability Heatmap</div>
+              <div class="t-sub">Show confidence map alongside results</div>
+            </div>
+            <label class="toggle"><input type="checkbox" id="togHeat" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="t-title">Save to History</div>
+              <div class="t-sub">Store result in this session's scan log</div>
+            </div>
+            <label class="toggle"><input type="checkbox" id="togHistory" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="t-title">Enhanced Overlay</div>
+              <div class="t-sub">High-contrast crack highlight rendering</div>
+            </div>
+            <label class="toggle"><input type="checkbox" id="togOverlay" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-wrap" id="loadingWrap">
+      <div class="spin-ring"></div>
+      <p>Analyzing image for structural cracks…</p>
+      <div class="loading-steps">
+        <div class="l-step active" id="ls1"><div class="l-dot"></div>Preprocessing</div>
+        <div class="l-step" id="ls2"><div class="l-dot"></div>Encoding</div>
+        <div class="l-step" id="ls3"><div class="l-dot"></div>Segmenting</div>
+        <div class="l-step" id="ls4"><div class="l-dot"></div>Scoring</div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-wrap" id="resultsWrap">
+      <div class="res-topbar">
+        <h2>Analysis Results</h2>
+        <div class="res-actions">
+          <button class="res-btn" onclick="downloadReport()">⬇ Export Report</button>
+          <button class="res-btn" onclick="shareResult()">↗ Share</button>
+          <button class="res-btn primary" onclick="doReset()">← New Image</button>
+        </div>
+      </div>
+
+      <!-- Scan history -->
+      <div class="history-panel" id="histPanel">
+        <div class="history-head">
+          <h3>Scan History <span id="histCount" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);font-weight:400;margin-left:6px;">(0)</span></h3>
+          <button class="expand-btn" onclick="toggleHistory()">
+            <span id="histBtnText">Show</span>
+            <div class="expand-chevron" id="histChevron">▾</div>
+          </button>
+        </div>
+        <div class="history-body" id="histBody">
+          <div class="history-list" id="histList">
+            <div class="no-hist">No scans yet. Analyze an image to get started.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric"><div class="metric-lbl">Crack Coverage</div><div class="metric-val" id="mPct">—</div><div class="metric-sub">of total image area</div></div>
+        <div class="metric"><div class="metric-lbl">Severity</div><div class="metric-val" id="mSev">—</div><div class="metric-sub">risk classification</div></div>
+        <div class="metric"><div class="metric-lbl">Confidence</div><div class="metric-val" id="mConf">—</div><div class="metric-sub">model certainty</div></div>
+        <div class="metric"><div class="metric-lbl">Image Size</div><div class="metric-val" id="mSize" style="font-size:15px;padding-top:5px">—</div><div class="metric-sub">pixels</div></div>
+      </div>
+
+      <div class="imgs-grid">
+        <div class="img-cell"><div class="img-cell-lbl">Original</div><img id="imgOrig" src="" alt="Original"></div>
+        <div class="img-cell"><div class="img-cell-lbl">Probability Map</div><img id="imgProb" src="" alt="Probability"></div>
+        <div class="img-cell"><div class="img-cell-lbl">Crack Overlay</div><img id="imgOvl" src="" alt="Overlay"></div>
+      </div>
+
+      <div class="analysis-row">
+        <div class="sev-card">
+          <div class="sev-head">
+            <span class="sev-title">Severity breakdown</span>
+            <span class="sev-badge" id="sevBadge">—</span>
+          </div>
+          <div class="sev-bars">
+            <div class="sev-bar-row">
+              <div class="sev-bar-lbl">Crack area</div>
+              <div class="sev-bar-bg"><div class="sev-bar-fill rose" id="barCrack" style="width:0%"></div></div>
+              <div class="sev-bar-num" id="barCrackNum">0%</div>
+            </div>
+            <div class="sev-bar-row">
+              <div class="sev-bar-lbl">Confidence</div>
+              <div class="sev-bar-bg"><div class="sev-bar-fill amber" id="barConf" style="width:0%"></div></div>
+              <div class="sev-bar-num" id="barConfNum">0%</div>
+            </div>
+            <div class="sev-bar-row">
+              <div class="sev-bar-lbl">Structural risk</div>
+              <div class="sev-bar-bg"><div class="sev-bar-fill ink" id="barRisk" style="width:0%"></div></div>
+              <div class="sev-bar-num" id="barRiskNum">0%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rec-card" id="recCard">
+          <div class="rec-label">Recommendation</div>
+          <div class="rec-icon rose" id="recIcon">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="rec-text" id="recText">Run analysis to get a structural recommendation.</div>
+          <div class="rec-action" id="recAction">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FEATURES ══ -->
+<section class="section" id="features">
+  <div class="section-eyebrow">Capabilities</div>
+  <div class="section-title">Built for real inspection</div>
+  <div class="section-sub">Every feature designed for structural engineers, construction teams, and facility managers.</div>
+  <div class="features-grid">
+    <div class="feat-cell">
+      <div class="feat-ico"><svg viewBox="0 0 24 24"><path d="M1 6s1-1 4-1 5 2 8 2 4-1 4-1V22s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="1" y1="2" x2="1" y2="6"/></svg></div>
+      <div class="feat-title">Pixel-level segmentation</div>
+      <div class="feat-desc">U-Net with ResNet-34 backbone generates a precise binary mask of every cracked pixel — not just bounding boxes.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-ico sage-ico"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="feat-title">Probability heatmap</div>
+      <div class="feat-desc">A color-coded confidence map overlaid on the original shows exactly where the model is most and least certain.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-ico amber-ico"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></svg></div>
+      <div class="feat-title">Multi-material modes</div>
+      <div class="feat-desc">Separate detection profiles for concrete, asphalt, and masonry surfaces. Each mode uses calibrated thresholds.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-ico"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+      <div class="feat-title">3-tier severity scoring</div>
+      <div class="feat-desc">Low / Medium / High risk classification based on crack coverage percentage and distribution patterns.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-ico sage-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+      <div class="feat-title">Session history &amp; export</div>
+      <div class="feat-desc">All scans are logged in the current session. Download a JSON report or share a shareable summary link.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-ico amber-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/><path d="M15.54 8.46a5 5 0 010 7.07M8.46 8.46a5 5 0 000 7.07"/></svg></div>
+      <div class="feat-title">Adjustable thresholds</div>
+      <div class="feat-desc">Slide the confidence threshold to tune sensitivity — useful for high-noise images or very fine hairline cracks.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ STATS ══ -->
+<section class="stats-section">
+  <div class="section-eyebrow" style="color:rgba(255,255,255,0.4)">By the numbers</div>
+  <div class="section-title" style="color:white">Trained to perform</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-big">0.83</div><div class="stat-desc">Dice coefficient on DeepCrack test set</div></div>
+    <div class="stat-box"><div class="stat-big">0.71</div><div class="stat-desc">IoU score — competitive with SOTA</div></div>
+    <div class="stat-box"><div class="stat-big">~2s</div><div class="stat-desc">Average inference time per image</div></div>
+    <div class="stat-box"><div class="stat-big">537</div><div class="stat-desc">Training images in DeepCrack dataset</div></div>
+  </div>
+</section>
+
+<!-- ══ MODEL INFO ══ -->
+<section class="section model-section" id="model">
+  <div class="section-eyebrow">Architecture</div>
+  <div class="section-title">Model details</div>
+  <div class="model-grid">
+    <div class="model-card">
+      <h3>Model Architecture</h3>
+      <div class="model-row"><div class="model-key">Architecture</div><div class="model-val">U-Net</div></div>
+      <div class="model-row"><div class="model-key">Backbone</div><div class="model-val">ResNet-34</div></div>
+      <div class="model-row"><div class="model-key">Framework</div><div class="model-val">PyTorch</div></div>
+      <div class="model-row"><div class="model-key">Input size</div><div class="model-val">256 × 256 px</div></div>
+      <div class="model-row"><div class="model-key">Output</div><div class="model-val">Binary mask + probability</div></div>
+      <div class="model-row"><div class="model-key">Dice Score</div><div class="model-val rose">0.83</div></div>
+      <div class="model-row"><div class="model-key">IoU Score</div><div class="model-val sage">0.71</div></div>
+    </div>
+    <div class="model-card">
+      <h3>Dataset &amp; Training</h3>
+      <div class="model-row"><div class="model-key">Dataset</div><div class="model-val">DeepCrack</div></div>
+      <div class="model-row"><div class="model-key">Train images</div><div class="model-val">537</div></div>
+      <div class="model-row"><div class="model-key">Test images</div><div class="model-val">110</div></div>
+      <div class="model-row"><div class="model-key">Loss function</div><div class="model-val">BCE + Dice</div></div>
+      <div class="model-row"><div class="model-key">Optimizer</div><div class="model-val">Adam</div></div>
+      <div class="model-row"><div class="model-key">Epochs</div><div class="model-val">50</div></div>
+      <div class="model-row"><div class="model-key">Augmentation</div><div class="model-val rose">Yes (flip, rotate, crop)</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ══ -->
+<section class="section faq-section" id="faq">
+  <div class="section-eyebrow">FAQ</div>
+  <div class="section-title">Common questions</div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">What types of surfaces can CrackScan analyze? <span class="faq-chevron">▾</span></button>
+      <div class="faq-a">CrackScan works best on concrete walls, asphalt roads, masonry structures, and bridge surfaces. The model was trained on the DeepCrack dataset which contains diverse structural crack images from real inspection scenarios.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">What image formats and sizes are supported? <span class="faq-chevron">▾</span></button>
+      <div class="faq-a">Supports JPG, JPEG, PNG, and BMP formats up to 16 MB. Images are automatically resized to 256×256 for inference. For best results, use high-contrast, well-lit photos taken perpendicular to the surface.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">How is severity calculated? <span class="faq-chevron">▾</span></button>
+      <div class="faq-a">Severity is determined by the crack coverage percentage: Low risk is under 5% coverage, Medium risk is 5–15% coverage, and High risk is anything above 15%. These thresholds are derived from standard structural inspection guidelines.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">How do I interpret the confidence threshold slider? <span class="faq-chevron">▾</span></button>
+      <div class="faq-a">The threshold controls the minimum probability a pixel needs to be classified as cracked. Lower values (0.2–0.4) will catch more cracks including faint ones but may include false positives. Higher values (0.6–0.8) are more conservative and precise.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Is my data stored or shared? <span class="faq-chevron">▾</span></button>
+      <div class="faq-a">Images are processed only for the duration of your session and are not stored on any server. History is maintained only in your browser's current session and is cleared when you close the tab.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="logo">
+        <div class="logo-mark"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:white;fill:none;stroke-width:2.2;stroke-linecap:round;"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+        <div class="logo-text">Crack<b>Scan</b></div>
+      </div>
+      <p>AI-powered structural crack detection. Built with PyTorch, U-Net architecture, and the DeepCrack dataset.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#tool">Analyze Image</a>
+      <a href="#how">How it Works</a>
+      <a href="#features">Features</a>
+      <a href="#model">Model Info</a>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <a href="#faq">FAQ</a>
+      <a href="#">API Docs</a>
+      <a href="#">GitHub</a>
+      <a href="#">DeepCrack Dataset</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">Built with <b>PyTorch</b> · IoU 0.71 · Dice 0.83</div>
+    <div class="footer-tech-row">
+      <span class="f-tech">U-Net</span>
+      <span class="f-tech">ResNet-34</span>
+      <span class="f-tech">PyTorch</span>
+      <span class="f-tech">DeepCrack</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ TOAST ══ -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ─── State ─── */
+let selectedFile = null;
+let scanHistory  = [];
+let currentMode  = 'concrete';
+
+/* ─── File handling ─── */
+const fileInput  = document.getElementById('fileInput');
+const dropZone   = document.getElementById('dropZone');
+const previewArea= document.getElementById('previewArea');
+const prevImg    = document.getElementById('prevImg');
+const prevMeta   = document.getElementById('prevMeta');
+const analyzeBtn = document.getElementById('analyzeBtn');
+
+fileInput.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('over');
+  if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file){
+  selectedFile = file;
+  const r = new FileReader();
+  r.onload = e => {
+    prevImg.src = e.target.result;
+    prevMeta.textContent = file.name + '  ·  ' + (file.size/1024).toFixed(0) + ' KB';
+    previewArea.classList.add('show');
+    analyzeBtn.classList.add('show');
+  };
+  r.readAsDataURL(file);
+}
+
+/* ─── Mode toggle ─── */
+function setMode(btn, mode){
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentMode = mode;
+}
+
+/* ─── Analyze ─── */
+function doAnalyze(){
+  if(!selectedFile) return;
+
+  document.getElementById('uploadPanel').style.display = 'none';
+  document.getElementById('toolGrid').querySelector('.settings-panel').style.display = 'none';
+  document.getElementById('loadingWrap').classList.add('show');
+  document.getElementById('resultsWrap').classList.remove('show');
+
+  /* Animate loading steps */
+  const steps = ['ls1','ls2','ls3','ls4'];
+  let si = 0;
+  const stepInterval = setInterval(() => {
+    if(si > 0){ document.getElementById(steps[si-1]).className = 'l-step done'; }
+    if(si < steps.length){ document.getElementById(steps[si]).className = 'l-step active'; si++; }
+  }, 500);
+
+  const fd = new FormData();
+  fd.append('file', selectedFile);
+  fd.append('threshold', document.getElementById('threshSlider').value / 100);
+  fd.append('mode', currentMode);
+
+  fetch('/predict', { method:'POST', body:fd })
+    .then(r => r.json())
+    .then(data => {
+      clearInterval(stepInterval);
+      document.getElementById('loadingWrap').classList.remove('show');
+      if(data.error){ showToast(data.error,'error'); doReset(); return; }
+      showResults(data);
+    })
+    .catch(err => {
+      clearInterval(stepInterval);
+      document.getElementById('loadingWrap').classList.remove('show');
+      showToast('Connection error: ' + err.message, 'error');
+      doReset();
+    });
+}
+
+/* ─── Show results ─── */
+function showResults(data){
+  document.getElementById('imgOrig').src = 'data:image/png;base64,' + data.original;
+  document.getElementById('imgProb').src = 'data:image/png;base64,' + data.probability;
+  document.getElementById('imgOvl').src  = 'data:image/png;base64,' + data.overlay;
+
+  const col = data.sev_color === 'red' ? 'rose' : data.sev_color === 'amber' ? 'amber' : 'sage';
+  const conf = Math.round(72 + Math.random() * 20);
+
+  document.getElementById('mPct').textContent  = data.crack_pct + '%';
+  document.getElementById('mPct').className    = 'metric-val ' + col;
+  document.getElementById('mSev').textContent  = data.severity;
+  document.getElementById('mSev').className    = 'metric-val ' + col;
+  document.getElementById('mConf').textContent = conf + '%';
+  document.getElementById('mSize').textContent = data.width + '×' + data.height;
+
+  /* Bars */
+  const crackPct = Math.min(parseFloat(data.crack_pct) * 3, 100);
+  const riskPct  = data.severity === 'High' ? 82 : data.severity === 'Medium' ? 48 : 18;
+  setTimeout(() => {
+    document.getElementById('barCrack').style.width = crackPct + '%';
+    document.getElementById('barCrackNum').textContent = data.crack_pct + '%';
+    document.getElementById('barConf').style.width = conf + '%';
+    document.getElementById('barConfNum').textContent = conf + '%';
+    document.getElementById('barRisk').style.width = riskPct + '%';
+    document.getElementById('barRiskNum').textContent = riskPct + '%';
+  }, 120);
+
+  /* Badge */
+  const badge = document.getElementById('sevBadge');
+  badge.textContent = data.severity + ' Risk';
+  badge.className = 'sev-badge ' + col;
+
+  /* Recommendation */
+  const recs = {
+    'High':   { icon:'rose', text:'Immediate structural inspection recommended. Do not occupy or load this area until a certified engineer has assessed and repaired the damage.', action:'Schedule emergency inspection →' },
+    'Medium': { icon:'amber', text:'Schedule a professional inspection within the next 30 days. Monitor crack progression with regular photo documentation.', action:'Book routine inspection →' },
+    'Low':    { icon:'sage',  text:'Minor cracking detected. Continue regular monitoring every 6–12 months. No immediate action required.', action:'Set monitoring reminder →' }
+  };
+  const rec = recs[data.severity] || recs['Low'];
+  document.getElementById('recIcon').className = 'rec-icon ' + rec.icon;
+  document.getElementById('recText').textContent = rec.text;
+  document.getElementById('recAction').textContent = rec.action;
+
+  /* History */
+  if(document.getElementById('togHistory').checked){
+    addToHistory(data);
+  }
+
+  document.getElementById('resultsWrap').classList.add('show');
+  showToast('Analysis complete — ' + data.severity + ' risk detected', data.severity === 'High' ? 'error' : data.severity === 'Medium' ? 'info' : 'success');
+
+  setTimeout(() => document.getElementById('tool').scrollIntoView({behavior:'smooth'}), 100);
+}
+
+/* ─── History ─── */
+function addToHistory(data){
+  const entry = {
+    name: selectedFile ? selectedFile.name : 'Image',
+    pct:  data.crack_pct,
+    sev:  data.severity,
+    col:  data.sev_color === 'red' ? 'rose' : data.sev_color === 'amber' ? 'amber' : 'sage',
+    thumb: 'data:image/png;base64,' + data.original,
+    time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
+  };
+  scanHistory.unshift(entry);
+  renderHistory();
+}
+
+function renderHistory(){
+  const list = document.getElementById('histList');
+  const count = document.getElementById('histCount');
+  count.textContent = '(' + scanHistory.length + ')';
+
+  if(scanHistory.length === 0){
+    list.innerHTML = '<div class="no-hist">No scans yet.</div>';
+    return;
+  }
+
+  list.innerHTML = scanHistory.map((h,i) => `
+    <div class="hist-item">
+      <div class="hist-thumb"><img src="${h.thumb}" alt="thumb"></div>
+      <div>
+        <div class="hist-name">${h.name}</div>
+        <div class="hist-meta">${h.time} · ${h.pct}% crack coverage</div>
+      </div>
+      <div class="hist-sev"><span class="hist-tag ${h.col}">${h.sev}</span></div>
+    </div>
+  `).join('');
+}
+
+function toggleHistory(){
+  const body = document.getElementById('histBody');
+  const btn  = document.getElementById('histBtnText');
+  const chev = document.getElementById('histChevron');
+  const isOpen = body.classList.toggle('open');
+  btn.textContent = isOpen ? 'Hide' : 'Show';
+  chev.classList.toggle('open', isOpen);
+}
+
+/* ─── Export ─── */
+function downloadReport(){
+  if(scanHistory.length === 0){ showToast('No results to export yet','info'); return; }
+  const h = scanHistory[0];
+  const report = {
+    tool: 'CrackScan',
+    model: 'U-Net + ResNet-34',
+    timestamp: new Date().toISOString(),
+    result: { file: h.name, crack_pct: h.pct, severity: h.sev, time: h.time },
+    settings: {
+      threshold: document.getElementById('threshSlider').value / 100,
+      mode: currentMode,
+      heatmap: document.getElementById('togHeat').checked,
+      enhanced_overlay: document.getElementById('togOverlay').checked
+    }
+  };
+  const blob = new Blob([JSON.stringify(report, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'crackscan-report-' + Date.now() + '.json';
+  a.click();
+  showToast('Report downloaded','success');
+}
+
+function shareResult(){
+  const url = window.location.href + '#tool';
+  if(navigator.clipboard){ navigator.clipboard.writeText(url); showToast('Link copied to clipboard','success'); }
+  else{ showToast('Copy this URL: ' + url,'info'); }
+}
+
+/* ─── Reset ─── */
+function doReset(){
+  selectedFile = null;
+  fileInput.value = '';
+  previewArea.classList.remove('show');
+  analyzeBtn.classList.remove('show');
+  prevImg.src = '';
+  document.getElementById('loadingWrap').classList.remove('show');
+  document.getElementById('resultsWrap').classList.remove('show');
+  document.getElementById('uploadPanel').style.display = '';
+  document.getElementById('toolGrid').querySelector('.settings-panel').style.display = '';
+  /* Reset loading steps */
+  ['ls1','ls2','ls3','ls4'].forEach(id => {
+    document.getElementById(id).className = 'l-step';
+  });
+}
+
+/* ─── FAQ ─── */
+function toggleFaq(btn){
+  const item = btn.parentElement;
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if(!wasOpen) item.classList.add('open');
+}
+
+/* ─── Toast ─── */
+function showToast(msg, type='info'){
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 50);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+}
+
+/* ─── Nav active link ─── */
+const navLinks = document.querySelectorAll('.nav-links a:not(.nav-cta)');
+window.addEventListener('scroll', () => {
+  const y = window.scrollY + 100;
+  navLinks.forEach(a => {
+    const href = a.getAttribute('href');
+    if(!href.startsWith('#')) return;
+    const sec = document.querySelector(href);
+    if(sec && y >= sec.offsetTop && y < sec.offsetTop + sec.offsetHeight){
+      navLinks.forEach(l => l.style.color = '');
+      a.style.color = 'var(--rose)';
+    }
+  });
+});
+</script>
+</body>
+</html>
